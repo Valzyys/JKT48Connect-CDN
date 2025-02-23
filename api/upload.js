@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN?.trim(); // Pastikan tidak ada whitespace
 const GITHUB_USERNAME = "Valzyys"; // Ganti dengan username GitHub
 const GITHUB_REPO = "JKT48Connect-CDN"; // Ganti dengan nama repository
 const BRANCH = "main"; // Branch yang digunakan
@@ -18,33 +18,15 @@ export default async function handler(req, res) {
 
     const filePath = `public/images/${filename}`;
 
-    // Cek apakah file sudah ada di repository (dapatkan SHA)
-    let sha = null;
-    try {
-      const { data: fileData } = await axios.get(
-        `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`,
-        { headers: { Authorization: `Token ${GITHUB_TOKEN}` } }
-      );
-      sha = fileData.sha;
-    } catch (error) {
-      if (error.response?.status !== 404) {
-        console.error("🔴 Error saat mendapatkan SHA:", error.response?.data || error.message);
-        return res.status(500).json({ error: "Failed to fetch existing file info" });
-      }
-    }
-
-    console.log(`🟢 SHA File: ${sha ? sha : "File baru, tidak ada SHA"}`);
-
-    // Commit file ke GitHub
+    // Commit file ke GitHub (tanpa SHA)
     const response = await axios.put(
       `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`,
       {
         message: `Upload ${filename}`,
         content: Buffer.from(file, "base64").toString("base64"),
         branch: BRANCH,
-        sha: sha || undefined
       },
-      { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
+      { headers: { Authorization: `Bearer ${GITHUB_TOKEN}` } }
     );
 
     console.log("🟢 File berhasil diunggah ke GitHub:", response.data);
