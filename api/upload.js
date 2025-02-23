@@ -1,10 +1,10 @@
-import { writeFile } from "fs/promises";
-import path from "path";
-import { existsSync, mkdirSync } from "fs";
+import axios from "axios";
 
-/**
- * API Upload untuk CDN
- */
+const GITHUB_TOKEN = "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";
+const GITHUB_USERNAME = "Valzyys"; // Ganti dengan username GitHub
+const GITHUB_REPO = "JKT48Connect-CDN"; // Ganti dengan nama repository
+const BRANCH = "main"; // Branch yang digunakan
+
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
@@ -16,32 +16,34 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "File and filename are required" });
     }
 
-    // Validasi ekstensi file (hanya gambar/video/audio)
-    const allowedExtensions = ["jpg", "jpeg", "png", "gif", "mp4", "mp3", "wav", "webm"];
-    const ext = filename.split(".").pop().toLowerCase();
-    if (!allowedExtensions.includes(ext)) {
-      return res.status(400).json({ error: "File type not supported" });
-    }
+    const filePath = `public/images/${filename}`;
+    const fileContent = Buffer.from(file, "base64").toString("utf-8");
 
-    // Buat folder uploads jika belum ada
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-    if (!existsSync(uploadDir)) {
-      mkdirSync(uploadDir, { recursive: true });
-    }
+    // Dapatkan SHA file jika sudah ada (untuk update)
+    const { data: fileData } = await axios.get(
+      `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`,
+      { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
+    ).catch(() => ({ data: null }));
 
-    // Simpan file ke server
-    const filePath = path.join(uploadDir, filename);
-    const buffer = Buffer.from(file, "base64");
+    const sha = fileData?.sha;
 
-    await writeFile(filePath, buffer);
+    // Commit file ke GitHub
+    const response = await axios.put(
+      `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`,
+      {
+        message: `Upload ${filename}`,
+        content: Buffer.from(file, "base64").toString("base64"),
+        branch: BRANCH,
+        sha: sha || undefined
+      },
+      { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
+    );
 
-    return res.status(200).json({
-      success: true,
-      url: `/uploads/${filename}`
-    });
+    const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/${BRANCH}/${filePath}`;
 
+    return res.status(200).json({ success: true, url: fileUrl });
   } catch (error) {
-    console.error("Upload Error:", error);
+    console.error("Upload Error:", error.response?.data || error.message);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
