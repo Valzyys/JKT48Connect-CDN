@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const GITHUB_TOKEN = "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";
+const GITHUB_TOKEN = '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';
 const GITHUB_USERNAME = "Valzyys"; // Ganti dengan username GitHub
 const GITHUB_REPO = "JKT48Connect-CDN"; // Ganti dengan nama repository
 const BRANCH = "main"; // Branch yang digunakan
