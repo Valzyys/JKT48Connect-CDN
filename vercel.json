@@ -2,6 +2,7 @@
   "version": 2,
   "public": true,
   "routes": [
+    { "src": "/api/upload", "dest": "/api/upload.js" },
     { "src": "/(.*)", "dest": "/public/$1" }
   ]
 }
