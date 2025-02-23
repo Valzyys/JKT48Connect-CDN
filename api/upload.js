@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     try {
       const { data: fileData } = await axios.get(
         `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`,
-        { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
+        { headers: { Authorization: `Bearer ${GITHUB_TOKEN.trim()}` } }
       );
       sha = fileData.sha;
     } catch (error) {
