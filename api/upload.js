@@ -39,7 +39,7 @@ export default async function handler(req, res) {
       { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
     );
 
-    const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/${BRANCH}/${filePath}`;
+    const fileUrl = `https://jkt-48-connect-cdn.vercel.app/images/${filename}`;
 
     return res.status(200).json({ success: true, url: fileUrl });
   } catch (error) {
