@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "File and filename are required" });
     }
 
-    const filePath = `public/images/${filename}`;
+    const filePath = `public/${filename}`;
 
     // Commit file ke GitHub tanpa SHA
     const response = await axios.put(
