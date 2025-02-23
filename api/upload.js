@@ -2,8 +2,8 @@ import axios from "axios";
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN?.trim();
 const GITHUB_USERNAME = "Valzyys"; 
-const GITHUB_REPO = "JKT48Connect-CDN";
-const BRANCH = "main";
+const GITHUB_REPO = "JKT48Connect-CDN"; 
+const BRANCH = "main"; 
 
 export default async function handler(req, res) {
   try {
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`,
       {
         message: `Upload ${filename}`,
-        content: file, // Gunakan langsung tanpa encode ulang
+        content: file, 
         branch: BRANCH,
       },
       { headers: { Authorization: `Bearer ${GITHUB_TOKEN}` } }
