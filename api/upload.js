@@ -7,25 +7,33 @@ const BRANCH = "main"; // Branch yang digunakan
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== "POST") {
+    if (req.method !== "GET") {
       return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    const { file, filename } = req.body;
+    const { file, filename } = req.query;
     if (!file || !filename) {
       return res.status(400).json({ error: "File and filename are required" });
     }
 
     const filePath = `public/images/${filename}`;
-    const fileContent = Buffer.from(file, "base64").toString("utf-8");
 
-    // Dapatkan SHA file jika sudah ada (untuk update)
-    const { data: fileData } = await axios.get(
-      `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`,
-      { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
-    ).catch(() => ({ data: null }));
+    // Cek apakah file sudah ada di repository (dapatkan SHA)
+    let sha = null;
+    try {
+      const { data: fileData } = await axios.get(
+        `https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filePath}`,
+        { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
+      );
+      sha = fileData.sha;
+    } catch (error) {
+      if (error.response?.status !== 404) {
+        console.error("🔴 Error saat mendapatkan SHA:", error.response?.data || error.message);
+        return res.status(500).json({ error: "Failed to fetch existing file info" });
+      }
+    }
 
-    const sha = fileData?.sha;
+    console.log(`🟢 SHA File: ${sha ? sha : "File baru, tidak ada SHA"}`);
 
     // Commit file ke GitHub
     const response = await axios.put(
@@ -39,11 +47,13 @@ export default async function handler(req, res) {
       { headers: { Authorization: `token ${GITHUB_TOKEN}` } }
     );
 
-    const fileUrl = `https://jkt-48-connect-cdn.vercel.app/images/${filename}`;
+    console.log("🟢 File berhasil diunggah ke GitHub:", response.data);
 
+    const fileUrl = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/${GITHUB_REPO}/${BRANCH}/${filePath}`;
     return res.status(200).json({ success: true, url: fileUrl });
+
   } catch (error) {
-    console.error("Upload Error:", error.response?.data || error.message);
+    console.error("🔴 Upload Error:", error.response?.data || error.message);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 }
