@@ -3,6 +3,7 @@
   "public": true,
   "routes": [
     { "src": "/api/upload", "dest": "/api/upload.js" },
+    { "src": "/api/upload2", "dest": "/api/upload2.js" },
     { "src": "/uploads/(.*)", "dest": "/public/uploads/$1" },
     { "src": "/(.*)", "dest": "/public/$1" }
   ]
